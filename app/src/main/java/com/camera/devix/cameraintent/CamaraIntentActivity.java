@@ -66,20 +66,43 @@ private String mImageFileLocation = "";
             //Todo: Se asigna a mPhotoCapturedImageView el valor que contenga el Bitmap photoCaptureBitmap
             mPhotoCapturedImageView.setImageBitmap(photoCaptureBitmap);
 */
-            Bitmap photoCaptureBitmap = BitmapFactory.decodeFile(mImageFileLocation);
-            mPhotoCapturedImageView.setImageBitmap(photoCaptureBitmap);
+            //Bitmap photoCaptureBitmap = BitmapFactory.decodeFile(mImageFileLocation);
+            //mPhotoCapturedImageView.setImageBitmap(photoCaptureBitmap);
+            setReduceImageSize();
         }
     }
 
     File createImageFile() throws IOException {
+        //Todo: Se crea la variable timeStamp con instancia de una clase SimpleDateFormat
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        //Todo:Este sera el nombre que tendra el archivo
         String imageFileName = "IMAGE_" + timeStamp + "_";
+        //Todo:Ruta donde se almacenara la imagen
         File storageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
-
+        //Todo:El tipo de archivo que se almacenara en el directorio
         File image = File.createTempFile(imageFileName,".jpg",storageDirectory);
+        //Todo: mImageFileLocation sera el valor que se
         mImageFileLocation = image.getAbsolutePath();
 
         return image;
+    }
+
+    void setReduceImageSize(){
+        int targetImageViewWidth = mPhotoCapturedImageView.getWidth();
+        int targeImageViewHeight = mPhotoCapturedImageView.getHeight();
+
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mImageFileLocation, bmOptions);
+
+        int cameraImageWidth = bmOptions.outWidth;
+        int cameraImageHeight = bmOptions.outHeight;
+
+        int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targeImageViewHeight);
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inJustDecodeBounds = false;
+        Bitmap photoReduceSizeBitmap = BitmapFactory.decodeFile(mImageFileLocation,bmOptions);
+        mPhotoCapturedImageView.setImageBitmap(photoReduceSizeBitmap);
     }
 }
