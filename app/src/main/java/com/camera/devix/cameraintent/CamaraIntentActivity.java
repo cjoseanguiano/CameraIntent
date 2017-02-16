@@ -3,6 +3,8 @@ package com.camera.devix.cameraintent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -68,7 +70,7 @@ private String mImageFileLocation = "";
 */
             //Bitmap photoCaptureBitmap = BitmapFactory.decodeFile(mImageFileLocation);
             //mPhotoCapturedImageView.setImageBitmap(photoCaptureBitmap);
-            setReduceImageSize();
+            rotateImage(setReduceImageSize());
         }
     }
 
@@ -88,7 +90,7 @@ private String mImageFileLocation = "";
         return image;
     }
 
-    void setReduceImageSize(){
+    private Bitmap setReduceImageSize(){
         int targetImageViewWidth = mPhotoCapturedImageView.getWidth();
         int targeImageViewHeight = mPhotoCapturedImageView.getHeight();
 
@@ -102,7 +104,36 @@ private String mImageFileLocation = "";
         int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targeImageViewHeight);
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inJustDecodeBounds = false;
-        Bitmap photoReduceSizeBitmap = BitmapFactory.decodeFile(mImageFileLocation,bmOptions);
-        mPhotoCapturedImageView.setImageBitmap(photoReduceSizeBitmap);
+//        Bitmap photoReduceSizeBitmap = BitmapFactory.decodeFile(mImageFileLocation,bmOptions);
+//        mPhotoCapturedImageView.setImageBitmap(photoReduceSizeBitmap);
+                return BitmapFactory.decodeFile(mImageFileLocation,bmOptions);
+
+    }
+
+    private void rotateImage(Bitmap bitmap){
+        ExifInterface exifInterface = null;
+        try {
+            exifInterface = new ExifInterface(mImageFileLocation);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,ExifInterface.ORIENTATION_UNDEFINED);
+        Matrix matrix = new Matrix();
+        switch (orientation){
+
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                matrix.setRotate(90);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                matrix.setRotate(180);
+                break;
+//            case  ExifInterface.ORIENTATION_ROTATE_270:
+//                matrix.setRotate(270);
+//                break;
+            default:
+        }
+        Bitmap rotateBitmap = Bitmap.createBitmap(bitmap,0,0, bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+        mPhotoCapturedImageView.setImageBitmap(rotateBitmap);
     }
 }
